@@ -1,0 +1,31 @@
+{
+    "name": "chemem/bingo-functional-http",
+    "description": "A simple interface for sending and receiving content over HTTP. Inspired by Haskell's HTTP package.",
+    "type": "library",
+    "license": "Apache-2.0",
+    "authors": [
+        {
+            "name": "Lochemem Bruno Michael",
+            "email": "lochbm@gmail.com"
+        }
+    ],
+    "minimum-stability": "dev",
+    "require": {
+        "chemem/bingo-functional": "~1"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "~7",
+        "giorgiosironi/eris": "~0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Chemem\\Bingo\\Functional\\Http\\": "src/"
+        },
+        "files": []
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Chemem\\Bingo\\Functional\\Http\\Tests\\": "tests/"
+        }
+    }
+}
