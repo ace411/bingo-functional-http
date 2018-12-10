@@ -23,7 +23,8 @@
             "Chemem\\Bingo\\Functional\\Http\\": "src/"
         },
         "files": [
-            "src/functions.php"
+            "src/functions.php",
+            "src/constants.php"
         ]
     },
     "autoload-dev": {
