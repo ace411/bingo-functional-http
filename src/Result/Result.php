@@ -13,40 +13,44 @@ class Result
 {
     private $data;
 
+    const of = 'Chemem\\Bingo\\Functional\\Http\\Result\\Result::of';
+
     public function __construct(Either\Either $data)
     {
         $this->data = $data;
     }
 
-    public static function result(array $data) : Result
-    {
-        $either = Either\Either::right($data);
-        
-        return new self($either);
+    public static function of(Either\Either $data) : Result
+    {        
+        return new self(self::resolve($data));
     }
 
-    public function resolve() : object
+    private static function resolve(Either\Either $object) : Either\Either
     {
-        $result = M\bind(function (array $data) : Either\Either {
-            $pluck = A\partial(A\pluck, $data);
-            $arrJson = A\partialRight('json_decode', true);
-            $combine = A\dropLeft(explode(' ', $pluck('headers')[0]), 1);
-            $codeReason = array((int) A\head($combine), A\concat(' ', ...A\tail($combine)));
-            
-            return count($pluck('headers')) < 2 ? 
-                Either\Either::left(Error::error(A\last($codeReason))) : 
-                Either\Either::right(Response::response(...A\extend(
-                    $codeReason, 
-                    array($pluck('headers')), 
-                    array($pluck('result'))
-                )));
-        }, $this->get());
-
-        return $result;
+        return M\bind(function ($res) : Either\Either {
+            return $res instanceof Error ? Either\Either::left($res) : Either\Either::right($res);
+        }, $object);
     }
 
-    public function get() : object
+    public function bind(callable $function) : Result
     {
-        return $this->data;
+        return $function($this->get());
+    }
+
+    public function map(callable $function) : Result
+    {
+        return new self($this->get()->map($function));
+    }
+
+    public function ap(Result $result) : Result
+    {
+        return $this->map(function ($function) use ($result) {
+            return $result->map($function);
+        });
+    }
+
+    public function get()
+    {
+        return $this->data instanceof Either\Left ? $this->data->getLeft() : $this->data->getRight();
     }
 }
