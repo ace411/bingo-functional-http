@@ -98,4 +98,21 @@ class HttpTest extends \PHPUnit\Framework\TestCase
                 $this->assertEquals('POST', $_post->rqMethod);
             });
     }
+
+    public function testSetRequestBodyChangesRequestBody()
+    {
+        $this->forAll(
+            Generator\suchThat(self::validateUrl, Generator\map(self::createUrl, Generator\string())),
+            Generator\associative(array(
+                'user' => Generator\names(),
+                'password' => Generator\map(A\partial('hash', 'sha256'), Generator\string())
+            ))
+        )
+            ->then(function (string $uri, array $body) {
+                $request = Http\setRequestBody(Http\postRequest($uri), $body);
+
+                $this->assertInstanceOf(Http\Request\Request::class, $request);
+                $this->assertInternalType('array', $request->rqBody);
+            });
+    }
 }
