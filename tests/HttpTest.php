@@ -70,16 +70,32 @@ class HttpTest extends \PHPUnit\Framework\TestCase
             });
     }
 
-    public function testGetRequestOutputsRequestObjectWithGetMethod()
+    public function testRequestMethodOutputsResultWithEncapsulatedMethod()
     {
         $this->forAll(
-            Generator\suchThat(self::validateUrl, Generator\map(self::createUrl, Generator\string()))
+            Generator\suchThat(self::validateUrl, Generator\map(self::createUrl, Generator\string())),
+            Generator\associative(array(
+                'GET' => Generator\constant(Http\getRequest),
+                'POST' => Generator\constant(Http\postRequest),
+                'HEAD' => Generator\constant(Http\headRequest),
+                '_POST' => Generator\constant(Http\postRequestWithBody)
+            ))
         )
-            ->then(function (string $uri) {
-                $req = Http\getRequest($uri);
+            ->then(function (string $uri, array $actions) {
+                $pluck = A\partial(A\pluck, $actions);
+                $get = $pluck('GET')($uri);
+                $post = $pluck('POST')($uri);
+                $head = $pluck('HEAD')($uri);
+                $_post = $pluck('_POST')($uri, 'application/json', array('name' => 'loki'));
 
-                $this->assertInstanceOf(Http\Request\Request::class, $req);
-                $this->assertEquals('GET', A\pluck($req->get(), 'rqMethod'));
+                $this->assertInstanceOf(Http\Request\Request::class, $get);
+                $this->assertInstanceOf(Http\Request\Request::class, $post);
+                $this->assertInstanceOf(Http\Request\Request::class, $head);
+                $this->assertInstanceOf(Http\Request\Request::class, $_post);
+                $this->assertEquals('GET', $get->rqMethod);
+                $this->assertEquals('POST', $post->rqMethod);
+                $this->assertEquals('HEAD', $head->rqMethod);
+                $this->assertEquals('POST', $_post->rqMethod);
             });
     }
 }
