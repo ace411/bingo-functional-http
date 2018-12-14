@@ -187,6 +187,13 @@ function headRequest(string $uri) : Request\Request
     return _baseReq($uri, 'HEAD', array(), array());
 }
 
+const putRequest = 'Chemem\\Bingo\\Functional\\Http\\putRequest';
+//putRequest :: String -> Request
+function putRequest(string $uri) : Request\Request
+{
+    return _baseReq($uri, 'PUT', array(), array());
+}
+
 const postRequestWithBody = 'Chemem\\Bingo\\Functional\\Http\\postRequestWithBody';
 //postRequestWithBody :: String -> String -> [body] -> Request
 function postRequestWithBody(string $uri, string $contentType, array $body) : Request\Request
