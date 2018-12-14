@@ -115,4 +115,23 @@ class HttpTest extends \PHPUnit\Framework\TestCase
                 $this->assertInternalType('array', $request->rqBody);
             });
     }
+
+    public function testHttpFetchesDataOverHttpAndStoresItInResultObject()
+    {
+        $this
+            ->limitTo(2)
+            ->forAll(
+                Generator\elements(
+                    'https://http2.pro/api/v1',
+                    'https://api.publicapis.org/random'
+                )
+            )
+            ->then(function (string $uri) {
+                $http = Http\http(Http\getRequest($uri));
+
+                $this->assertInstanceOf(\Chemem\Bingo\Functional\Functors\Monads\IO::class, $http);
+                $this->assertInstanceOf(Http\Result\Result::class, $http->exec());
+                $this->assertInstanceOf(Http\Response\Response::class, $http->exec()->get());
+            });
+    }
 }
