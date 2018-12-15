@@ -5,6 +5,7 @@ namespace Chemem\Bingo\Functional\Http\Tests;
 use \Eris\Generator;
 use \Chemem\Bingo\Functional\Algorithms as A;
 use \Chemem\Bingo\Functional\Http;
+use \Chemem\Bingo\Functional\Functors\Monads as M;
 
 class HttpTest extends \PHPUnit\Framework\TestCase
 {
@@ -23,7 +24,7 @@ class HttpTest extends \PHPUnit\Framework\TestCase
     {
         return filter_var($uri, FILTER_VALIDATE_URL) !== false;
     }
-
+    
     public function testShowConvertsHttpObjectToString()
     {
         $this->forAll(
@@ -132,6 +133,46 @@ class HttpTest extends \PHPUnit\Framework\TestCase
                 $this->assertInstanceOf(\Chemem\Bingo\Functional\Functors\Monads\IO::class, $http);
                 $this->assertInstanceOf(Http\Result\Result::class, $http->exec());
                 $this->assertInstanceOf(Http\Response\Response::class, $http->exec()->get());
+            });
+    }
+
+    public function testGetResponseCodeOutputsResponseCode()
+    {
+        $this
+            ->limitTo(2)
+            ->forAll(
+                Generator\elements(
+                    'https://http2.pro/api/v1',
+                    'https://api.publicapis.org/random'
+                )
+            )
+            ->then(function (string $uri) {
+                $http = A\compose(Http\getRequest, Http\http, function ($response) {
+                    return M\bind(Http\getResponseCode, $response);
+                });
+
+                $this->assertInternalType('integer', $http($uri)->exec());
+                $this->assertInstanceOf(\Chemem\Bingo\Functional\Functors\Monads\IO::class, $http($uri));
+            });
+    }
+
+    public function testGetResponseBodyOutputsResponseBody()
+    {
+        $this
+            ->limitTo(2)
+            ->forAll(
+                Generator\elements(
+                    'https://http2.pro/api/v1',
+                    'https://api.publicapis.org/random'
+                )
+            )
+            ->then(function (string $uri) {
+                $http = A\compose(Http\getRequest, Http\http, function ($response) {
+                    return M\bind(Http\getResponseBody, $response);
+                });
+
+                $this->assertInternalType('string', $http($uri)->exec());
+                $this->assertInstanceOf(\Chemem\Bingo\Functional\Functors\Monads\IO::class, $http($uri));
             });
     }
 }
