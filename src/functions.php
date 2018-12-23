@@ -243,6 +243,7 @@ function getResponseCode(Result $result) : IO
     return _deconstructResponse($result, 'code');
 }
 
+const catchIO = 'Chemem\\Bingo\\Functional\\Http\\catchIO';
 //catchIO :: IO a -> (IOException -> IO a) -> IO a
 function catchIO(IO $result) : IO
 {
