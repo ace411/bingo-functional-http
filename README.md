@@ -8,4 +8,4 @@ A simple tool for sending and receiving content over HTTP. Inspired by Haskell's
 
 ## Documentation
 
-Coming soon!
+Information on how to use this library can be found [here](https://ace411.github.io/bingo-functional/#/http).
