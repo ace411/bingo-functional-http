@@ -15,21 +15,14 @@ class Result
 
     const of = 'Chemem\\Bingo\\Functional\\Http\\Result\\Result::of';
 
-    public function __construct(Either\Either $data)
+    public function __construct($value)
     {
-        $this->data = $data;
+        $this->data = $value instanceof Error ? Either\Either::left($value) : Either\Either::right($value);
     }
 
-    public static function of(Either\Either $data) : Result
-    {        
-        return new self(self::resolve($data));
-    }
-
-    private static function resolve(Either\Either $object) : Either\Either
+    public static function of($value) : Result
     {
-        return M\bind(function ($res) : Either\Either {
-            return $res instanceof Error ? Either\Either::left($res) : Either\Either::right($res);
-        }, $object);
+        return new static($value);        
     }
 
     public function bind(callable $function) : Result
@@ -39,7 +32,9 @@ class Result
 
     public function map(callable $function) : Result
     {
-        return new self($this->get()->map($function));
+        return $this->bind(function ($data) use ($function) {
+            return new static($function($data));
+        });
     }
 
     public function ap(Result $result) : Result
@@ -49,8 +44,8 @@ class Result
         });
     }
 
-    public function get()
+    public function get() : Either\Either
     {
-        return $this->data instanceof Either\Left ? $this->data->getLeft() : $this->data->getRight();
+        return $this->data;
     }
 }
