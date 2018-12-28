@@ -1,5 +1,13 @@
 <?php
 
+/**
+ * 
+ * Result functor
+ * 
+ * @author Lochemem Bruno Michael
+ * @license Apache-2.0 
+ */
+
 namespace Chemem\Bingo\Functional\Http\Result;
 
 use \Chemem\Bingo\Functional\Algorithms as A;
