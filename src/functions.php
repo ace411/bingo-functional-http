@@ -90,15 +90,13 @@ function http(Request\Request $request) : IO
             $data = @file_get_contents($request->rqUri, false, $context);
             $error = new Error\Error;
             $error->connErr = 'Invalid Request';
-            return Either\Either::right(
-                isset($http_response_header) ?
-                    _bindResponse(...A\extend(
-                        _extrCodeReason($http_response_header), 
-                        array($http_response_header), 
-                        array($data)
-                    )) :
-                    $error
-            );
+            return isset($http_response_header) ?
+                _bindResponse(...A\extend(
+                    _extrCodeReason($http_response_header), 
+                    array($http_response_header), 
+                    array($data)
+                )) :
+                $error;
         })); 
     });
 
@@ -216,29 +214,36 @@ function postRequestWithBody(string $uri, string $contentType, array $body) : Re
 //_deconstructResponse :: Result (Response ty) -> String -> IO  
 function _deconstructResponse(Result $result, string $opt) : IO
 {
-    $http = $result->get();
-    $res = A\compose(
+    return Either\either(_left, A\partialRight(_right, $opt), $result->get());
+}
+
+const _left = 'Chemem\\Bingo\\Functional\\Http\\_left';
+//_left :: Error -> IO
+function _left(Error\Error $error) : IO
+{
+    return IO\IO(function () use ($error) : callable {
+        return function () {
+            throw new \Exception($error->connErr);
+        };
+    });
+}
+
+const _right = 'Chemem\\Bingo\\Functional\\Http\\_right';
+//_right :: Response -> String -> IO
+function _right(Response\Response $response, string $opt) : IO
+{
+    $right = A\compose(
         A\partial(PM\patternMatch, array(
-            '"body"' => function () use ($http) : string {
-                return PM\patternMatch(array(
-                    Response\Response::class => function () use ($http) : string {
-                        return $http->rspBody;
-                    },
-                    '_' => function () : string {
-                        return json_encode(array());
-                    }
-                ), $http); 
+            '"body"' => function () use ($response) : string {
+                return $response->rspBody;
             },
-            '"code"' => function () use ($http) : int {
-                return $http->rspCode;
-            },
-            '_' => function () : array {
-                return array();
+            '_' => function () : int {
+                return $response->rspCode;
             }
         )),
         IO\IO
     );
-    return $res($opt);
+    return $right($opt);
 }
 
 const getResponseBody = 'Chemem\\Bingo\\Functional\\Http\\getResponseBody';
@@ -259,9 +264,9 @@ const catchIO = 'Chemem\\Bingo\\Functional\\Http\\catchIO';
 //catchIO :: IO a -> (IOException -> IO a) -> IO a
 function catchIO(IO $result) : IO
 {
-    return M\bind(function (callable $action) {
-        return IO\IO(A\toException($action));
-    }, $result);
+    return M\bind(function (callable $req) {
+        return IO\IO(A\toException($req));
+    }, $result); 
 }
 
 const bindE = 'Chemem\\Bingo\\Functional\\Http\\bindE';
