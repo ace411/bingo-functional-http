@@ -23,14 +23,14 @@ use \Chemem\Bingo\Functional\Functors\Either;
 
 const show = 'Chemem\\Bingo\\Functional\\Http\\show';
 // show :: Http a -> String
-function show(object $http) : string
+function show($http) : string
 {
     return json_encode($http);
 }
 
 const getHeaders = 'Chemem\\Bingo\\Functional\\Http\\getHeaders';
 //getHeaders :: Http a -> [Header]
-function getHeaders(object $http) : array
+function getHeaders($http) : array
 {
     return PM\patternMatch(array(
         Response\Response::class => function () use ($http) {
@@ -115,7 +115,7 @@ function http(Request\Request $request) : IO
 }
 
 //bindOpt :: Object -> [opts] -> [data] -> Object
-function _bindOpt(object $http, array $data) : object 
+function _bindOpt($http, array $data)
 {
     $pluck = A\partial(A\pluck, $data);
     return PM\patternMatch(array(
