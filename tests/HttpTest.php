@@ -6,6 +6,8 @@ use \Eris\Generator;
 use \Chemem\Bingo\Functional\Algorithms as A;
 use \Chemem\Bingo\Functional\Http;
 use \Chemem\Bingo\Functional\Functors\Monads as M;
+use \Chemem\Bingo\Functional\Functors\Either;
+use \Chemem\Bingo\Functional\Functors\Monads\IO;
 
 class HttpTest extends \PHPUnit\Framework\TestCase
 {
@@ -78,6 +80,8 @@ class HttpTest extends \PHPUnit\Framework\TestCase
             Generator\associative(array(
                 'GET' => Generator\constant(Http\getRequest),
                 'POST' => Generator\constant(Http\postRequest),
+                'DELETE' => Generator\constant(Http\deleteRequest),
+                'PUT' => Generator\constant(Http\putRequest),
                 'HEAD' => Generator\constant(Http\headRequest),
                 '_POST' => Generator\constant(Http\postRequestWithBody)
             ))
@@ -86,14 +90,20 @@ class HttpTest extends \PHPUnit\Framework\TestCase
                 $pluck = A\partial(A\pluck, $actions);
                 $get = $pluck('GET')($uri);
                 $post = $pluck('POST')($uri);
+                $put = $pluck('PUT')($uri);
+                $delete = $pluck('DELETE')($uri);
                 $head = $pluck('HEAD')($uri);
                 $_post = $pluck('_POST')($uri, 'application/json', array('name' => 'loki'));
 
                 $this->assertInstanceOf(Http\Request\Request::class, $get);
                 $this->assertInstanceOf(Http\Request\Request::class, $post);
+                $this->assertInstanceOf(Http\Request\Request::class, $delete);
+                $this->assertInstanceOf(Http\Request\Request::class, $put);
                 $this->assertInstanceOf(Http\Request\Request::class, $head);
                 $this->assertInstanceOf(Http\Request\Request::class, $_post);
                 $this->assertEquals('GET', $get->rqMethod);
+                $this->assertEquals('PUT', $put->rqMethod);
+                $this->assertEquals('DELETE', $delete->rqMethod);
                 $this->assertEquals('POST', $post->rqMethod);
                 $this->assertEquals('HEAD', $head->rqMethod);
                 $this->assertEquals('POST', $_post->rqMethod);
@@ -132,7 +142,7 @@ class HttpTest extends \PHPUnit\Framework\TestCase
 
                 $this->assertInstanceOf(\Chemem\Bingo\Functional\Functors\Monads\IO::class, $http);
                 $this->assertInstanceOf(Http\Result\Result::class, $http->exec());
-                $this->assertInstanceOf(Http\Response\Response::class, $http->exec()->get());
+                $this->assertInstanceOf(Either\Either::class, $http->exec()->get());
             });
     }
 
@@ -173,6 +183,24 @@ class HttpTest extends \PHPUnit\Framework\TestCase
 
                 $this->assertInternalType('string', $http($uri)->exec());
                 $this->assertInstanceOf(\Chemem\Bingo\Functional\Functors\Monads\IO::class, $http($uri));
+            });
+    }
+
+    public function testCatchIOSafelyParsesIOException()
+    {
+        $this->forAll(Generator\constant('Some Exception'))
+            ->then(function (string $msg) {
+                $func = IO\IO(function () use ($msg) : callable {
+                    return function () use ($msg) {
+                        throw new \Exception($msg);
+                    };
+                });
+
+                $catch = Http\catchIO($func);
+
+                $this->assertInstanceOf(IO::class, $catch);
+                $this->assertInternalType('string', $catch->exec());
+                $this->assertEquals($msg, $catch->exec());
             });
     }
 }
