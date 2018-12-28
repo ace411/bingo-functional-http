@@ -194,6 +194,18 @@ function putRequest(string $uri) : Request\Request
     return _baseReq($uri, 'PUT', array(), array());
 }
 
+const deleteRequest = 'Chemem\\Bingo\\Functional\\Http\\deleteRequest';
+function deleteRequest(string $uri) : Request\Request
+{
+    return _baseReq($uri, 'DELETE', array(), array());
+}
+
+const patchRequest = 'Chemem\\Bingo\\Functional\\Http\\patchRequest';
+function patchRequest(string $uri) : Request\Request
+{
+    return _baseReq($uri, 'PATCH', array(), array());
+}
+
 const postRequestWithBody = 'Chemem\\Bingo\\Functional\\Http\\postRequestWithBody';
 //postRequestWithBody :: String -> String -> [body] -> Request
 function postRequestWithBody(string $uri, string $contentType, array $body) : Request\Request
