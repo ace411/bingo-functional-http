@@ -237,7 +237,7 @@ function _right(Response\Response $response, string $opt) : IO
             '"body"' => function () use ($response) : string {
                 return $response->rspBody;
             },
-            '_' => function () : int {
+            '_' => function () use ($response) : int {
                 return $response->rspCode;
             }
         )),
